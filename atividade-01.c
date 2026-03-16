@@ -1,33 +1,33 @@
- #include <stdio.h>
- #include <math.h>
- 
- /*
-    funcao: f(x) = 4 / (1 + xˆ2)
- */
+#include <stdio.h>
+#include <math.h>
+#include <omp.h>
 
- static double funcao(double x)
- {
-     return 4.0 / (1.0 + x * x);
- }
+/*
+  funcao: f(x) = 4 / (1 + x^2)
+*/
+static double funcao(double x)
+{
+    return 4.0 / (1.0 + x * x);
+}
 
- double simpson_composta(double a, double b, int n)
- {
-     double h = (b - a) / n;
- 
-     double soma = funcao(a) + funcao(b);
- 
-     for (int i = 1; i < n; i++) {
-         double xi = a + i * h;
- 
-         if (i % 2 == 0) {
-             soma += 2.0 * funcao(xi);
-         } else {
-             soma += 4.0 * funcao(xi);
-         }
-     }
- 
-     return (h / 3.0) * soma;
- }
+double simpson_composta(double a, double b, int n)
+{
+    double h = (b - a) / n;
+    double soma = funcao(a) + funcao(b);
+
+    #pragma omp parallel for reduction(+:soma)
+    for (int i = 1; i < n; i++) {
+        double xi = a + i * h;
+
+        if (i % 2 == 0) {
+            soma += 2.0 * funcao(xi);
+        } else {
+            soma += 4.0 * funcao(xi);
+        }
+    }
+
+    return (h / 3.0) * soma;
+}
 
  int main(void)
  {
